@@ -1,0 +1,6 @@
+__pycache__/
+my_venv/
+Music Analyzer_RU/
+*.pyc
+.DS_Store
+test.py
