@@ -13,8 +13,7 @@ import numpy as np
 
 
 class MusicAnalyzer:
-    def __init__(self, label_widget):
-        self.label_widget = label_widget
+    def __init__(self):
 
         # Constants for key detection
         self.NOTES = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
@@ -76,12 +75,11 @@ class MusicAnalyzer:
         # If no file is selected (no path), show a warning window
         if not self.path_mp3:
             showwarning(title='Warning!', message='You did not select a file')
+            self.y = None
+            return None
 
         # If everything is OK (file selected, path exists)
         else:
-            # Notification that processing is in progress:
-            self.label_widget['text'] = 'Loading data...'
-
             try:
                 # Load audio
                 self.y, self.sr = librosa.load(self.path_mp3)
@@ -112,18 +110,20 @@ class MusicAnalyzer:
                 self.zcr = librosa.feature.zero_crossing_rate(self.y)[0]
 
                 # Output to label
-                self.label_widget['text'] = (f"Path: {self.path_mp3}\n\n"
-                                        f"Duration: {round(self.duration, 1)} sec\n"
-                                        f"Tempo: {int(self.tempo[0])} BPM\n"
-                                        f"Key: {self.key}\n"
-                                        f"Sample Rate: {self.sr} Hz\n")
+                report = {
+                    "path": self.path_mp3,
+                    "duration": round(self.duration, 1),
+                    "tempo": int(self.tempo[0]),
+                    "key": self.key,
+                    "sample_rate": self.sr
+                }
 
+                return report
 
             except Exception as e:
 
                 # If something went wrong — show a user-friendly message
                 showwarning(title='Error', message=f'Failed to load file:\n{str(e)}')
-                self.label_widget['text'] = 'File loading error'
                 # Reset data so graphs cannot be plotted
                 self.y = None
 

@@ -23,11 +23,28 @@ main_label.grid(row=1, column=0, columnspan=6,
                 sticky=tk.EW)
 
 # create a MusicAnalyzer class object that already has all functions and necessary attributes
-music_analyzer = analyzer.MusicAnalyzer(main_label)
+music_analyzer = analyzer.MusicAnalyzer()
+
+def handle_load():
+    main_label['text'] = 'Loading...'
+    main_label.update()
+
+    data = music_analyzer.load_mp3()
+    if data:
+        main_label['text'] = (
+            f"Path: {data['path']}\n\n"
+            f"Duration: {data['duration']} sec\n"
+            f"Tempo: {data['tempo']} BPM\n"
+            f"Key: {data['key']}\n"
+            f"Sample Rate: {data['sample_rate']} Hz\n"
+        )
+    else:
+        main_label['text'] = 'File loading error or cancelled'
+
 
 # buttons
 # command=music_analyzer.load_mp3 - reference to the music_analyzer class method that loads, collects, and analyzes all data
-load_mp3_button = tk.Button(text='Load MP3', font=16, command=music_analyzer.load_mp3)
+load_mp3_button = tk.Button(text='Load MP3', font=16, command=handle_load)
 load_mp3_button.grid(row=0, column=0, columnspan=3,
                      ipadx=50, ipady=20, padx=70, pady=20,
                      sticky=tk.NW)
