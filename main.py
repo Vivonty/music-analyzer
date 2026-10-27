@@ -2,6 +2,9 @@
 # import GUI module
 import tkinter as tk
 
+# import module for running the library preloading in the background
+import threading
+
 # import my module where all button functions are defined
 import analyzer
 
@@ -26,6 +29,9 @@ main_label.grid(row=1, column=0, columnspan=6,
 music_analyzer = analyzer.MusicAnalyzer()
 
 def handle_load():
+    # remember the current text, so it can be restored if loading is cancelled or fails
+    previous_text = main_label['text']
+
     main_label['text'] = 'Loading...'
     main_label.update()
 
@@ -39,7 +45,9 @@ def handle_load():
             f"Sample Rate: {data['sample_rate']} Hz\n"
         )
     else:
-        main_label['text'] = 'File loading error or cancelled'
+        # cancelled or failed (the error window was already shown):
+        # the analyzer data is unchanged, so show the previous result again
+        main_label['text'] = previous_text
 
 
 # buttons
@@ -54,6 +62,38 @@ analyze_button.grid(row=0, column=3, columnspan=3,
                      ipadx=50, ipady=20, padx=70, pady=20,
                     sticky=tk.NW)
 
+# --- background preloading of heavy libraries (librosa, matplotlib) ---
+# buttons are disabled until the libraries are ready, so the window appears instantly
+load_mp3_button.config(state='disabled')
+analyze_button.config(state='disabled')
+main_label['text'] = 'Loading libraries...'
+
+# event that the background thread sets when it is done
+libs_ready = threading.Event()
+# stores an import error (if any), to show it in the main thread
+libs_error = []
+
+def preload():
+    # runs in a background thread: must NOT touch any Tkinter widgets
+    try:
+        analyzer.preload_libs()
+    except Exception as e:
+        libs_error.append(e)
+    libs_ready.set()
+
+def check_ready():
+    # runs in the main thread: polls the event every 100 ms
+    if not libs_ready.is_set():
+        window.after(100, check_ready)
+    elif libs_error:
+        main_label['text'] = f'Failed to load libraries:\n{libs_error[0]}'
+    else:
+        load_mp3_button.config(state='normal')
+        analyze_button.config(state='normal')
+        main_label['text'] = ''
+
 # run the window
 if __name__ == "__main__":
+    threading.Thread(target=preload, daemon=True).start()
+    window.after(100, check_ready)
     window.mainloop()
