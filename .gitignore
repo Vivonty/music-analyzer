@@ -1,6 +1,30 @@
+# PyCharm / JetBrains
+.idea/
+
+# Python
 __pycache__/
+*.py[cod]
+
+# Виртуальные окружения
 my_venv/
+venv/
+.venv/
+
+# Локальное
 Music Analyzer_RU/
-*.pyc
-.DS_Store
 test.py
+
+#
+build/
+dist/
+*.spec
+
+# Тестовые аудиофайлы
+*.mp3
+*.wav
+*.flac
+*.ogg
+
+# Системные файлы
+.DS_Store
+Thumbs.db
